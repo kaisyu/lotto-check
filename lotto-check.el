@@ -20,6 +20,19 @@
 ;; Requirements:
 ;; * Emacs 22+
 
+;; Install:
+;; * append following lines to your start-up script file (e.g. .emacs)
+;;   (add-to-list 'load-path "<lotto-check.el path>")
+;;   (require 'lotto-check)
+
+;; Usage:
+;; * interactive functions
+;;   - M-x lotto-retrieve-numbers-i   : retrieve a specific lotto info
+;;   - M-x lotto-check-numbers-list-i : check lotto numbers
+;; * API functions
+;;   - lotto-retrieve-numbers   : retrieve a specific lotto info
+;;   - lotto-check-numbers-list : check lotto numbers
+
 
 (eval-when-compile (require 'cl))
 
@@ -66,8 +79,7 @@
 
 
 (defun save-lotto-db-to-file ()
-  ;; TODO add comments
-  ""
+  "save the contents of `*lotto-database*' to the local file(`lotto-database-file')"
   (unless (hash-table-p *lotto-database*)
     (return))
   (with-temp-buffer
@@ -80,8 +92,7 @@
 
 
 (defun load-lotto-db-from-file ()
-  ;; TODO add comments
-  ""
+  "load the contents of `*lotto-database*' from the local file(`lotto-database-file')"
   (with-temp-buffer
     (cond ((file-readable-p lotto-database-file)
            (insert-file-contents lotto-database-file)
@@ -170,13 +181,13 @@
 
 
 (defun lotto-retrieve-numbers-from-local-db (gno)
-  ;; TODO add commments
+  "retrieve lotto numbers from local db\nGNO: game no.\nreturn: lotto info. ((num_list) bonus_num) OR nil if the info does not exist on the local db.\nex) (lotto-retrieve-numbers-from-local-db 395)\n=> ((11 15 20 26 31 35) 7)"
   (when (hash-table-p *lotto-database*)
     (gethash gno *lotto-database*)))
 
 
 (defun lotto-retrieve-numbers (gno)
-  ;; TODO add comments
+  "retrieve lotto numbers\nGNO: game no.\nreturn: lotto info. ((num_list) bonus_num)\nex) (lotto-retrieve-numbers 395)\n=> ((11 15 20 26 31 35) 7)"
   (let ((lval (lotto-retrieve-numbers-from-local-db gno)))
     (or lval
         (puthash gno (funcall lotto-info-retrieve-func gno) *lotto-database*))))
@@ -203,7 +214,7 @@
 
 
 (defun lotto-check-numbers-list (gno my-num-list)
-  ;; TODO add comments
+  "check the given lotto numbers\nGNO: game no.\nMY-NUM-LIST: a list of numbers to check\nreturn: result of check. ((grade (matched_numbers)) ...)\n\nex) (lotto-check-numbers-list 395 '((1 2 3 4 5 6) (11 15 20 28 32 36)))\n=> ((0 nil) (5 (11 15 20)))"
   (let ((lotto-nums (lotto-retrieve-numbers gno))
         (my-list (if (consp (car my-num-list))
                      my-num-list
@@ -257,23 +268,3 @@
 
 
 (provide 'lotto-check)
-
-
-;(setq lotto-num-list ())
-;(let ((num-list ()))
-;  (dotimes (i 395)
-;    (print i)
-;    (push (lotto-retrieve-numbers (+ i 1)) num-list))
-;  (setq lotto-num-list (reverse num-list)))
-
-;(let ((myhash)
-;      (i 1))
-;  (setq myhash (make-hash-table))
-;  (dolist (elm lotto-num-list)
-;    (puthash i elm myhash)
-;    (setq i (+ i 1)))
-;  (print (gethash 1 myhash))
-;  (print myhash))
-
-;(print lotto-num-list)
-
