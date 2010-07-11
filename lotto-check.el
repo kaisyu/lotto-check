@@ -29,11 +29,13 @@
 ;; * interactive functions
 ;;   - M-x lotto-retrieve-numbers-i   : retrieve a specific lotto info
 ;;   - M-x lotto-check-numbers-list-i : check lotto numbers
+;;   - M-x lotto-save-db-to-file-i    : save lotto database to the local file(`lotto-database-file')
+;;   - M-x lotto-load-db-to-file-i    : load lotto database from the local file(`lotto-database-file')
 ;; * API functions
 ;;   - lotto-retrieve-numbers   : retrieve a specific lotto info
 ;;   - lotto-check-numbers-list : check lotto numbers
-;;   - save-lotto-db-to-file    : save lotto database to the local file(`lotto-database-file')
-;;   - load-lotto-db-from-file  : load lotto database from the local file(`lotto-database-file')
+;;   - lotto-save-db-to-file    : save lotto database to the local file(`lotto-database-file')
+;;   - lotto-load-db-from-file  : load lotto database from the local file(`lotto-database-file')
 
 
 (eval-when-compile (require 'cl))
@@ -75,13 +77,30 @@
   :group 'lotto)
 
 
+(defcustom lotto-use-buffer-for-message t
+  "use a buffer for messages"
+  :type 'boolean
+  :group 'lotto)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; variables
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; global variables and constants
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defvar *lotto-database* nil)
+(defvar *lotto-database*
+  nil
+  "Local cache database for Lotto info")
+
+
+(defconst +lotto-message-buffer+
+  "*lotto-check-messages*"
+  "Message buffer for lotto-check module")
+
+
+(defconst +http-retrieved-page-contents-buffer+
+  "*http-retrieved-page-contents*"
+  "Buffer for the retrieved page contents by http")
 
 
 
@@ -90,7 +109,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defun save-lotto-db-to-file ()
+(defun lotto-save-db-to-file ()
   "save the contents of `*lotto-database*' to the local file(`lotto-database-file')"
   (unless (hash-table-p *lotto-database*)
     (return))
@@ -103,7 +122,7 @@
       t)))
 
 
-(defun load-lotto-db-from-file ()
+(defun lotto-load-db-from-file ()
   "load the contents of `*lotto-database*' from the local file(`lotto-database-file')"
   (with-temp-buffer
     (cond ((file-readable-p lotto-database-file)
@@ -238,6 +257,27 @@
     (reverse result)))
 
 
+(defun lotto-retrieve-numbers-formatted (gno)
+  ;; TODO add comments
+  (let ((nums (lotto-retrieve-numbers gno)))
+    (format "Game %d: %s and Bonus Number is %d."
+            gno 
+            (substring
+             (format "%s" (car nums))
+             1 -1)
+            (cadr nums))))
+
+
+(defun lotto-message (msg &optional toBuf)
+  ;; TODO add comments
+  (if (or toBuf lotto-use-buffer-for-message)
+      (progn
+        (set-buffer (get-buffer-create +lotto-message-buffer+))
+        (insert msg)
+        (insert "\n")
+        (switch-to-buffer +lotto-message-buffer+))
+    (message msg)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; interactive functions
@@ -246,23 +286,61 @@
 
 (defun lotto-retrieve-numbers-i (gno)
   (interactive "ngame no: ")
-  (print (lotto-retrieve-numbers gno)))
+  (lotto-message (lotto-retrieve-numbers-formatted gno)))
 
 
 (defun lotto-check-numbers-list-i (gno my-num-list)
   (interactive "ngame no: \nxyour numbers: ")
-  (print (lotto-check-numbers-list gno my-num-list)))
+  (let ((results (lotto-check-numbers-list gno my-num-list))
+        (msgs nil))
+    (push "---------------------------------------------------------------------------" msgs)
+    (push (lotto-retrieve-numbers-formatted gno) msgs)
+    (do ((cnt 1 (1+ cnt))
+         (lst results (cdr lst))
+         (mylst (if (consp (car my-num-list))
+                    my-num-list
+                  (list my-num-list))
+                (cdr mylst)))
+        ((or (null lst) (null mylst)))
+      (push (format "Try #%d %-19s => Grade: %s, Matched Numbers: %s"
+                    cnt
+                    (car mylst)
+                    (if (= (caar lst) 0)
+                        "-"
+                      (int-to-string (caar lst)))
+                    (if (null (cadar lst))
+                        "None"
+                      (substring
+                       (format "%s" (cadar lst))
+                       1 -1)))
+            msgs))
+    (push "---------------------------------------------------------------------------" msgs)    
+    (lotto-message (mapconcat 'identity (reverse msgs) "\n"))))
+
+
+(defun lotto-save-db-to-file-i ()
+  (interactive)
+  (if (lotto-save-db-to-file)
+      (lotto-message (format "OK: Lotto DB has been successfully saved. (%s)" lotto-database-file))
+    (lotto-message "ERROR: Saving Lotto DB failed!!")))
+
+
+(defun lotto-load-db-from-file-i ()
+  (interactive)
+  (if (lotto-load-db-from-file)
+      (lotto-message (format "OK: Lotto DB has been successfully loaded. (%s)" lotto-database-file))
+    (lotto-message "ERROR: Loading Lotto DB failed!!")))
 
 
 (defun http-retrieve-page-contents (url)
   (interactive "surl: ")
   (save-excursion
     (let ((buf1 (url-retrieve-synchronously url)))
-      (set-buffer (get-buffer-create "*http-retrieved-page-contents*"))
+      (set-buffer (get-buffer-create +http-retrieved-page-contents-buffer+))
       (erase-buffer)
       (insert-buffer-substring buf1)
       (kill-buffer buf1)
-      (switch-to-buffer "*http-retrieved-page-contents*"))))
+      (switch-to-buffer +http-retrieved-page-contents-buffer+))))
 
 
 
@@ -273,10 +351,10 @@
 
 (eval-when (eval load)
   (unless *lotto-database*
-    (load-lotto-db-from-file)))
+    (lotto-load-db-from-file)))
 
 
-(add-hook 'kill-emacs-hook 'save-lotto-db-to-file)
+(add-hook 'kill-emacs-hook 'lotto-save-db-to-file)
 
 
 (provide 'lotto-check)
