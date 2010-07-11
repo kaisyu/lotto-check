@@ -32,6 +32,8 @@
 ;; * API functions
 ;;   - lotto-retrieve-numbers   : retrieve a specific lotto info
 ;;   - lotto-check-numbers-list : check lotto numbers
+;;   - save-lotto-db-to-file    : save lotto database to the local file(`lotto-database-file')
+;;   - load-lotto-db-from-file  : load lotto database from the local file(`lotto-database-file')
 
 
 (eval-when-compile (require 'cl))
