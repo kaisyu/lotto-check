@@ -45,9 +45,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(defgroup lotto nil
+  "Simple API for Korean Lotto 645"
+  :prefix "lotto"
+  :version "22.0"
+  :group 'applications)
+
+
 (defcustom lotto-info-retrieve-func-custom nil
   "a custom function to retrieve lotto info\nTo enable this variable, you must set `lotto-info-retrieve-func' to `lotto-info-retrieve-func-custom'."
-  :type 'function)
+  :type 'function
+  :group 'lotto)
 
 
 (defcustom lotto-info-retrieve-func 'lotto-retrieve-numbers-from-lotto-k
@@ -57,12 +65,14 @@
              lotto-retrieve-numbers-from-naver
              lotto-retrieve-numbers-from-daum
              lotto-retrieve-numbers-from-645lotto
-             lotto-info-retrieve-func-custom))
+             lotto-info-retrieve-func-custom)
+  :group 'lotto)
 
 
 (defcustom lotto-database-file "~/.lotto-database"
   "a file to store lotto database"
-  :type 'file)
+  :type 'file
+  :group 'lotto)
 
 
 
@@ -117,14 +127,13 @@
   (let ((buf1 (url-retrieve-synchronously
                (lotto-gen-site-url-lotto-k gno)))
         (obj nil))
-    (save-excursion
-      (set-buffer buf1)
-      (goto-char (point-min))
-      (unwind-protect
-          (progn
-            (re-search-forward "^(.+$")
-            (setq obj (read-from-whole-string (match-string 0))))
-        (kill-buffer buf1)))
+    (set-buffer buf1)
+    (goto-char (point-min))
+    (unwind-protect
+        (progn
+          (re-search-forward "^(.+$")
+          (setq obj (read-from-whole-string (match-string 0))))
+      (kill-buffer buf1))
     (list (cdr (assoc 'nums obj)) (cdr (assoc 'bnum obj)))))
 
 
@@ -134,14 +143,13 @@
                (funcall url-func gno)))
         (nums ())
         (bnum))
-    (save-excursion
-      (set-buffer buf1)
-      (goto-char (point-min))
-      (unwind-protect
-          (dotimes (i 7)
-            (re-search-forward rexp)
-            (push (string-to-number (match-string 1)) nums))
-        (kill-buffer buf1)))
+    (set-buffer buf1)
+    (goto-char (point-min))
+    (unwind-protect
+        (dotimes (i 7)
+          (re-search-forward rexp)
+          (push (string-to-number (match-string 1)) nums))
+      (kill-buffer buf1))
     (setq bnum (pop nums))
     (list (reverse nums) bnum)))
 
@@ -197,9 +205,11 @@
 
 (defun lotto-check-numbers (lotto-nums my-nums)
   ;; TODO add comments
-  (let* ((intsec (remove-if-not
-                  (lambda (x) (member x (car lotto-nums))) 
-                  my-nums))
+  (let* ((intsec (delq 
+                  nil 
+                  (mapcar
+                   (lambda (x) (car (member x (car lotto-nums)))) 
+                   my-nums)))
          (ilen (length intsec)))
     (list
      (cond ((= ilen 6) 1)
@@ -250,7 +260,7 @@
     (let ((buf1 (url-retrieve-synchronously url)))
       (set-buffer (get-buffer-create "*http-retrieved-page-contents*"))
       (erase-buffer)
-      (insert-buffer buf1)
+      (insert-buffer-substring buf1)
       (kill-buffer buf1)
       (switch-to-buffer "*http-retrieved-page-contents*"))))
 
@@ -261,7 +271,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(eval-when (eval)
+(eval-when (eval load)
   (unless *lotto-database*
     (load-lotto-db-from-file)))
 
