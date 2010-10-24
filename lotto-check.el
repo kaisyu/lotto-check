@@ -14,7 +14,7 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; Version 0.1
+;; Version 0.1.1
 ;; Author: Sang-gi Lee <kaisyu@gmail.com>
 
 ;; Requirements:
@@ -83,6 +83,7 @@
   :group 'lotto)
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; global variables and constants
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -148,12 +149,13 @@
         (obj nil))
     (set-buffer buf1)
     (goto-char (point-min))
-    (unwind-protect
-        (progn
-          (re-search-forward "^(.+$")
-          (setq obj (read-from-whole-string (match-string 0))))
-      (kill-buffer buf1))
-    (list (cdr (assoc 'nums obj)) (cdr (assoc 'bnum obj)))))
+    (ignore-errors
+      (unwind-protect
+          (progn
+            (re-search-forward "^(.+$")
+            (setq obj (read-from-whole-string (match-string 0))))
+        (kill-buffer buf1))
+      (list (cdr (assoc 'nums obj)) (cdr (assoc 'bnum obj))))))
 
 
 (defun lotto-retrieve-numbers-base (gno url-func rexp)
@@ -164,13 +166,14 @@
         (bnum))
     (set-buffer buf1)
     (goto-char (point-min))
-    (unwind-protect
-        (dotimes (i 7)
-          (re-search-forward rexp)
-          (push (string-to-number (match-string 1)) nums))
-      (kill-buffer buf1))
-    (setq bnum (pop nums))
-    (list (reverse nums) bnum)))
+    (ignore-errors
+      (unwind-protect
+          (dotimes (i 7)
+            (re-search-forward rexp)
+            (push (string-to-number (match-string 1)) nums))
+        (kill-buffer buf1))
+      (setq bnum (pop nums))
+      (list (reverse nums) bnum))))
 
 
 (defun lotto-gen-site-url-daum (gno)
@@ -182,7 +185,14 @@
 
 (defun lotto-retrieve-numbers-from-daum (gno)
   "retrieve lotto numbers from Daum's lotto8\nGNO: game no.\nreturn: ((num_list) bonus_num)\n\nex) (lotto-retrieve-numbers-from-daum 395)\n=> ((11 15 20 26 31 35) 7)"
-  (lotto-retrieve-numbers-base gno 'lotto-gen-site-url-daum "ball\\([0-9]+\\).gif"))
+  (let ((lval (lotto-retrieve-numbers-base
+               gno
+               'lotto-gen-site-url-daum
+               "ball\\([0-9]+\\).gif")))
+    (if (or (member 0 (car lval))
+            (zerop (cadr lval)))
+        nil
+      lval)))
 
 
 (defun lotto-gen-site-url-naver (gno)
@@ -194,7 +204,10 @@
 
 (defun lotto-retrieve-numbers-from-naver (gno)
   "retrieve lotto numbers from Naver\nGNO: game no.\nreturn: ((num_list) bonus_num)\n\nex) (lotto-retrieve-numbers-from-naver 395)\n=> ((11 15 20 26 31 35) 7)"
-  (lotto-retrieve-numbers-base gno 'lotto-gen-site-url-naver "ball\\([0-9]+\\).gif"))
+  (lotto-retrieve-numbers-base
+   gno
+   'lotto-gen-site-url-naver
+   "ball\\([0-9]+\\).gif"))
 
 
 (defun lotto-gen-site-url-645lotto (gno)
@@ -206,7 +219,10 @@
 
 (defun lotto-retrieve-numbers-from-645lotto (gno)
   "retrieve lotto numbers from 645lotto.net\nGNO: game no.\nreturn: ((num_list) bonus_num)\n\nex) (lotto-retrieve-numbers-from-645lotto 395)\n=> ((11 15 20 26 31 35) 7)"
-  (lotto-retrieve-numbers-base gno 'lotto-gen-site-url-645lotto "Ball[\\\t ]:[\\\t ]\\\"\\([0-9]+\\)\\\""))
+  (lotto-retrieve-numbers-base
+   gno
+   'lotto-gen-site-url-645lotto
+   "Ball[\\\t ]:[\\\t ]\\\"\\([0-9]+\\)\\\""))
 
 
 (defun lotto-retrieve-numbers-from-local-db (gno)
@@ -219,7 +235,10 @@
   "retrieve lotto numbers\nGNO: game no.\nreturn: lotto info. ((num_list) bonus_num)\nex) (lotto-retrieve-numbers 395)\n=> ((11 15 20 26 31 35) 7)"
   (let ((lval (lotto-retrieve-numbers-from-local-db gno)))
     (or lval
-        (puthash gno (funcall lotto-info-retrieve-func gno) *lotto-database*))))
+        (progn
+          (setq lval (funcall lotto-info-retrieve-func gno))
+          (if lval
+              (puthash gno lval *lotto-database*))))))
 
 
 (defun lotto-check-numbers (lotto-nums my-nums)
@@ -260,12 +279,15 @@
 (defun lotto-retrieve-numbers-formatted (gno)
   ;; TODO add comments
   (let ((nums (lotto-retrieve-numbers gno)))
-    (format "Game %d: %s and Bonus Number is %d."
-            gno 
-            (substring
-             (format "%s" (car nums))
-             1 -1)
-            (cadr nums))))
+    (if nums
+        (format "Game %d: %s and Bonus Number is %d."
+                gno 
+                (substring
+                 (format "%s" (car nums))
+                 1 -1)
+                (cadr nums))
+      (format "Game %d: not exist yet."
+              gno))))
 
 
 (defun lotto-message (msg &optional toBuf)
@@ -277,6 +299,7 @@
         (insert "\n")
         (switch-to-buffer +lotto-message-buffer+))
     (message msg)))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
