@@ -362,6 +362,9 @@
       (set-buffer (get-buffer-create +http-retrieved-page-contents-buffer+))
       (erase-buffer)
       (insert-buffer-substring buf1)
+      (goto-char (point-min))
+      (re-search-forward "charset=\\([-0-9a-zA-Z]*\\)" nil t 1)
+      (decode-coding-region (point-min) (point-max) (intern (downcase (match-string 1))))
       (kill-buffer buf1)
       (switch-to-buffer +http-retrieved-page-contents-buffer+))))
 
