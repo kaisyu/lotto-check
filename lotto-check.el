@@ -14,7 +14,7 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; Version 0.1.1
+;; Version 0.1.2
 ;; Author: Sang-gi Lee <kaisyu@gmail.com>
 
 ;; Requirements:
@@ -66,6 +66,7 @@
   :options '(lotto-retrieve-numbers-from-lotto-k
              lotto-retrieve-numbers-from-naver
              lotto-retrieve-numbers-from-daum
+             lotto-retrieve-numbers-from-nate
              lotto-retrieve-numbers-from-645lotto
              lotto-info-retrieve-func-custom)
   :group 'lotto)
@@ -207,6 +208,21 @@
   (lotto-retrieve-numbers-base
    gno
    'lotto-gen-site-url-naver
+   "ball\\([0-9]+\\).gif"))
+
+
+(defun lotto-gen-site-url-nate (gno)
+  "return url for Nate's lotto info site\nex) (lotto-gen-site-url-nate 101)"
+  (if gno
+      (format "http://search.nate.com/search/all.html?csn=0&z=A&tq=&rq=&nq=&sg=&q=%%B7%%CE%%B6%%C7%d" gno)
+    "http://search.nate.com/search/all.html?csn=0&z=A&tq=&rq=&nq=&sg=&q=%%B7%%CE%%B6%%C7"))
+
+
+(defun lotto-retrieve-numbers-from-nate (gno)
+  "retrieve lotto numbers from Nate\nGNO: game no.\nreturn: ((num_list) bonus_num)\n\nex) (lotto-retrieve-numbers-from-nate 395)\n=> ((11 15 20 26 31 35) 7)"
+  (lotto-retrieve-numbers-base
+   gno
+   'lotto-gen-site-url-nate
    "ball\\([0-9]+\\).gif"))
 
 
