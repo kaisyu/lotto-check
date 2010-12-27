@@ -100,6 +100,11 @@
   "Message buffer for lotto-check module")
 
 
+(defconst +lotto-msg-window-height+
+  5
+  "Height of the Lotto message window")
+
+
 (defconst +http-retrieved-page-contents-buffer+
   "*http-retrieved-page-contents*"
   "Buffer for the retrieved page contents by http")
@@ -132,7 +137,7 @@
            (goto-char (point-min))
            (setq *lotto-database* (read-from-whole-string (buffer-string)))
            t)
-          (t 
+          (t
            (setq *lotto-database* (make-hash-table))
            nil))))
 
@@ -259,10 +264,10 @@
 
 (defun lotto-check-numbers (lotto-nums my-nums)
   ;; TODO add comments
-  (let* ((intsec (delq 
-                  nil 
+  (let* ((intsec (delq
+                  nil
                   (mapcar
-                   (lambda (x) (car (member x (car lotto-nums)))) 
+                   (lambda (x) (car (member x (car lotto-nums))))
                    my-nums)))
          (ilen (length intsec)))
     (list
@@ -297,7 +302,7 @@
   (let ((nums (lotto-retrieve-numbers gno)))
     (if nums
         (format "Game %d: %s and Bonus Number is %d."
-                gno 
+                gno
                 (substring
                  (format "%s" (car nums))
                  1 -1)
@@ -306,14 +311,39 @@
               gno))))
 
 
+(defun lotto-create-msg-window ()
+  ;; TODO add comments
+  (let ((buf (get-buffer-create +lotto-message-buffer+))
+        (win (split-window-vertically)))
+    (other-window 1)
+    (set-window-text-height nil +lotto-msg-window-height+)
+    (switch-to-buffer buf)
+    win))
+
+
+(defun lotto-get-or-create-lotto-msg-window ()
+  ;; TODO add comments
+  (let ((wlist (window-list))
+        (lwin nil))
+    (dolist (w wlist)
+      (when (string= +lotto-message-buffer+
+             (buffer-name (window-buffer w)))
+        (setq lwin w)
+        (return)))
+    (if (null lwin)
+        (lotto-create-msg-window)
+      lwin)))
+
+
 (defun lotto-message (msg &optional toBuf)
   ;; TODO add comments
   (if (or toBuf lotto-use-buffer-for-message)
-      (progn
-        (set-buffer (get-buffer-create +lotto-message-buffer+))
+      (let ((win (lotto-get-or-create-lotto-msg-window)))
+        (set-buffer (window-buffer win))
+        (goto-char (point-max))
         (insert msg)
         (insert "\n")
-        (switch-to-buffer +lotto-message-buffer+))
+        (goto-char (point-max)))
     (message msg)))
 
 
@@ -353,7 +383,7 @@
                        (format "%s" (cadar lst))
                        1 -1)))
             msgs))
-    (push "---------------------------------------------------------------------------" msgs)    
+    (push "---------------------------------------------------------------------------" msgs)
     (lotto-message (mapconcat 'identity (reverse msgs) "\n"))))
 
 
