@@ -14,7 +14,7 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; Version 0.1.2
+;; Version 0.1.4
 ;; Author: Sang-gi Lee <kaisyu@gmail.com>
 
 ;; Requirements:
@@ -185,8 +185,8 @@
 (defun lotto-gen-site-url-daum (gno)
   "return url for Daum's lotto info site\nex) (lotto-gen-site-url-daum 101)"
   (if gno
-      (format "http://lotto8.daum.net/winInfo/last_jackpot.asp?TIMES=%d" gno)
-    "http://lotto8.daum.net/wininfo/last_jackpot.asp"))
+      (format "http://search.daum.net/search?q=%%B7%%CE%%B6%%C7%d" gno)
+    "http://search.daum.net/search?q=%B7%CE%B6%C7"))
 
 
 (defun lotto-retrieve-numbers-from-daum (gno)
@@ -194,7 +194,7 @@
   (let ((lval (lotto-retrieve-numbers-base
                gno
                'lotto-gen-site-url-daum
-               "ball\\([0-9]+\\).gif")))
+               "ball_\\([0-9]+\\).gif")))
     (if (or (member 0 (car lval))
             (zerop (cadr lval)))
         nil
@@ -219,8 +219,8 @@
 (defun lotto-gen-site-url-nate (gno)
   "return url for Nate's lotto info site\nex) (lotto-gen-site-url-nate 101)"
   (if gno
-      (format "http://search.nate.com/search/all.html?csn=0&z=A&tq=&rq=&nq=&sg=&q=%%B7%%CE%%B6%%C7%d" gno)
-    "http://search.nate.com/search/all.html?csn=0&z=A&tq=&rq=&nq=&sg=&q=%%B7%%CE%%B6%%C7"))
+      (format "http://search.nate.com/search/all.html?q=%%B7%%CE%%B6%%C7%d" gno)
+    "http://search.nate.com/search/all.html?q=%B7%CE%B6%C7"))
 
 
 (defun lotto-retrieve-numbers-from-nate (gno)
