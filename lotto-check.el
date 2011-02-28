@@ -49,7 +49,7 @@
 
 (defgroup lotto nil
   "Simple API for Korean Lotto 645"
-  :prefix "lotto"
+  :prefix "lotto-"
   :version "22.0"
   :group 'applications)
 
