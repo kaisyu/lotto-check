@@ -55,7 +55,9 @@
 
 
 (defcustom lotto-info-retrieve-func-custom nil
-  "a custom function to retrieve lotto info\nTo enable this variable, you must set `lotto-info-retrieve-func' to `lotto-info-retrieve-func-custom'."
+  "a custom function to retrieve lotto info.
+
+To enable this variable, you must set `lotto-info-retrieve-func' to `lotto-info-retrieve-func-custom'."
   :type 'function
   :group 'lotto)
 
@@ -79,7 +81,7 @@
 
 
 (defcustom lotto-use-buffer-for-message t
-  "use a buffer for messages"
+  "use an own buffer for messages"
   :type 'boolean
   :group 'lotto)
 
@@ -108,6 +110,40 @@
 (defconst +http-retrieved-page-contents-buffer+
   "*http-retrieved-page-contents*"
   "Buffer for the retrieved page contents by http")
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; lotto-mode definition
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defconst +lotto-keywords+
+  '(("Game [0-9]+:" . font-lock-keyword-face)
+    ("Try #[0-9]+" . font-lock-keyword-face)
+    ("Grade:\\|Matched Numbers:" . font-lock-keyword-face)
+    ("\\b[0-9]+\\b" . font-lock-constant-face)
+    ("OK:" . font-lock-function-name-face))
+  "Keywords for lotto-mode")
+
+
+(define-derived-mode lotto-mode fundamental-mode
+  "lotto-mode"
+  "Major mode for Lotto Info"
+
+  ;; code for syntax highlighting
+  (setq font-lock-defaults '(+lotto-keywords+))
+
+  ;; make the buffer read-only
+  (setq buffer-read-only t)
+
+  ;; key bindings
+  (local-set-key (kbd "q") 'lotto-hide-message-buffer)
+  (local-set-key (kbd "g") 'lotto-retrieve-numbers-i)
+  (local-set-key (kbd "r") 'lotto-retrieve-numbers-i)
+  (local-set-key (kbd "c") 'lotto-check-numbers-list-i)
+  (local-set-key (kbd "l") 'lotto-load-db-from-file-i)
+  (local-set-key (kbd "s") 'lotto-save-db-to-file-i))
 
 
 
@@ -143,13 +179,21 @@
 
 
 (defun lotto-gen-site-url-lotto-k (gno)
-  "return url for Lotto_K's lotto info site\nex) (lotto-gen-site-url-lotto-k 101)"
+  "return url for Lotto_K's lotto info site
+
+ex) (lotto-gen-site-url-lotto-k 101)"
   (format "http://lotto.kaisyu.com/api?method=get&type=emacs&gno=%d"
           (if gno gno 0)))
 
 
 (defun lotto-retrieve-numbers-from-lotto-k (gno)
-  "retrieve lotto numbers from Lotto_K\nGNO: game no.\nreturn: ((num_list) bonus_num)\n\nex) (lotto-retrieve-numbers-from-lotto-k 395)\n=> ((11 15 20 26 31 35) 7)"
+  "retrieve lotto numbers from Lotto_K
+GNO: game no.
+return: ((num_list) bonus_num)
+
+ex) (lotto-retrieve-numbers-from-lotto-k 395)
+    => ((11 15 20 26 31 35)
+        7)"
   (let ((buf1 (url-retrieve-synchronously
                (lotto-gen-site-url-lotto-k gno)))
         (obj nil))
@@ -165,7 +209,15 @@
 
 
 (defun lotto-retrieve-numbers-base (gno url-func rexp)
-  "retrieve lotto numbers\nGNO: game no.\nURL-FUNC: a function for lotto info url\nREXP: number string pattern\nreturn: ((num_list) bonus_num)\n\nex) (lotto-retrieve-numbers-base 395 lotto-gen-site-url-naver \"ball\\\\([0-9]+\\\\).gif\")\n=> ((11 15 20 26 31 35) 7)"
+  "retrieve lotto numbers
+GNO: game no.
+URL-FUNC: a function for lotto info url
+REXP: number string pattern
+return: ((num_list) bonus_num)
+
+ex) (lotto-retrieve-numbers-base 395 lotto-gen-site-url-naver \"ball\\\\([0-9]+\\\\).gif\")
+    => ((11 15 20 26 31 35)
+        7)"
   (let ((buf1 (url-retrieve-synchronously
                (funcall url-func gno)))
         (nums ())
@@ -183,14 +235,23 @@
 
 
 (defun lotto-gen-site-url-daum (gno)
-  "return url for Daum's lotto info site\nex) (lotto-gen-site-url-daum 101)"
+  "return url for Daum's lotto info site
+
+ex) (lotto-gen-site-url-daum 101)"
   (if gno
       (format "http://search.daum.net/search?q=%%B7%%CE%%B6%%C7%d" gno)
     "http://search.daum.net/search?q=%B7%CE%B6%C7"))
 
 
 (defun lotto-retrieve-numbers-from-daum (gno)
-  "retrieve lotto numbers from Daum's lotto8\nGNO: game no.\nreturn: ((num_list) bonus_num)\n\nex) (lotto-retrieve-numbers-from-daum 395)\n=> ((11 15 20 26 31 35) 7)"
+  "retrieve lotto numbers from Daum's lotto8
+GNO: game no.
+return: ((num_list) bonus_num)
+
+ex) (lotto-retrieve-numbers-from-daum 395)
+    => ((11 15 20 26 31 35)
+        7)"
+  ;; FIXME: `date-to-time' error on running the `url-retrieve-synchronously' function
   (let ((lval (lotto-retrieve-numbers-base
                gno
                'lotto-gen-site-url-daum
@@ -202,14 +263,22 @@
 
 
 (defun lotto-gen-site-url-naver (gno)
-  "return url for Naver's lotto info site\nex) (lotto-gen-site-url-naver 101)"
+  "return url for Naver's lotto info site
+
+ex) (lotto-gen-site-url-naver 101)"
   (if gno
       (format "http://search.naver.com/search.naver?sm=tab_hty&where=nexearch&query=%d%%C8%%B8%%B7%%CE%%B6%%C7" gno)
     "http://search.naver.com/search.naver?sm=tab_hty&where=nexearch&query=%B7%CE%B6%C7"))
 
 
 (defun lotto-retrieve-numbers-from-naver (gno)
-  "retrieve lotto numbers from Naver\nGNO: game no.\nreturn: ((num_list) bonus_num)\n\nex) (lotto-retrieve-numbers-from-naver 395)\n=> ((11 15 20 26 31 35) 7)"
+  "retrieve lotto numbers from Naver
+GNO: game no.
+return: ((num_list) bonus_num)
+
+ex) (lotto-retrieve-numbers-from-naver 395)
+    => ((11 15 20 26 31 35)
+        7)"
   (lotto-retrieve-numbers-base
    gno
    'lotto-gen-site-url-naver
@@ -217,14 +286,22 @@
 
 
 (defun lotto-gen-site-url-nate (gno)
-  "return url for Nate's lotto info site\nex) (lotto-gen-site-url-nate 101)"
+  "return url for Nate's lotto info site
+
+ex) (lotto-gen-site-url-nate 101)"
   (if gno
       (format "http://search.nate.com/search/all.html?q=%%B7%%CE%%B6%%C7%d" gno)
     "http://search.nate.com/search/all.html?q=%B7%CE%B6%C7"))
 
 
 (defun lotto-retrieve-numbers-from-nate (gno)
-  "retrieve lotto numbers from Nate\nGNO: game no.\nreturn: ((num_list) bonus_num)\n\nex) (lotto-retrieve-numbers-from-nate 395)\n=> ((11 15 20 26 31 35) 7)"
+  "retrieve lotto numbers from Nate
+GNO: game no.
+return: ((num_list) bonus_num)
+
+ex) (lotto-retrieve-numbers-from-nate 395)
+    => ((11 15 20 26 31 35)
+        7)"
   (lotto-retrieve-numbers-base
    gno
    'lotto-gen-site-url-nate
@@ -232,14 +309,22 @@
 
 
 (defun lotto-gen-site-url-645lotto (gno)
-  "return url for 645lotto's lotto info site\nex) (lotto-gen-site-url-645lotto 101)"
+  "return url for 645lotto's lotto info site
+
+ex) (lotto-gen-site-url-645lotto 101)"
   (if gno
       (format "http://www.645lotto.net/resultall/%d.asp" gno)
     "http://www.645lotto.net/resultall/dummy.asp"))
 
 
 (defun lotto-retrieve-numbers-from-645lotto (gno)
-  "retrieve lotto numbers from 645lotto.net\nGNO: game no.\nreturn: ((num_list) bonus_num)\n\nex) (lotto-retrieve-numbers-from-645lotto 395)\n=> ((11 15 20 26 31 35) 7)"
+  "retrieve lotto numbers from 645lotto.net
+GNO: game no.
+return: ((num_list) bonus_num)
+
+ex) (lotto-retrieve-numbers-from-645lotto 395)
+    => ((11 15 20 26 31 35)
+        7)"
   (lotto-retrieve-numbers-base
    gno
    'lotto-gen-site-url-645lotto
@@ -247,13 +332,25 @@
 
 
 (defun lotto-retrieve-numbers-from-local-db (gno)
-  "retrieve lotto numbers from local db\nGNO: game no.\nreturn: lotto info. ((num_list) bonus_num) OR nil if the info does not exist on the local db.\nex) (lotto-retrieve-numbers-from-local-db 395)\n=> ((11 15 20 26 31 35) 7)"
+  "retrieve lotto numbers from local db
+GNO: game no.
+return: lotto info. ((num_list) bonus_num) OR nil if the info does not exist on the local db.
+
+ex) (lotto-retrieve-numbers-from-local-db 395)
+    => ((11 15 20 26 31 35)
+        7)"
   (when (hash-table-p *lotto-database*)
     (gethash gno *lotto-database*)))
 
 
 (defun lotto-retrieve-numbers (gno)
-  "retrieve lotto numbers\nGNO: game no.\nreturn: lotto info. ((num_list) bonus_num)\nex) (lotto-retrieve-numbers 395)\n=> ((11 15 20 26 31 35) 7)"
+  "retrieve lotto numbers
+GNO: game no.
+return: lotto info. ((num_list) bonus_num)
+
+ex) (lotto-retrieve-numbers 395)
+    => ((11 15 20 26 31 35)
+        7)"
   (let ((lval (lotto-retrieve-numbers-from-local-db gno)))
     (or lval
         (progn
@@ -263,7 +360,14 @@
 
 
 (defun lotto-check-numbers (lotto-nums my-nums)
-  ;; TODO add comments
+  "check the given lotto numbers
+LOTTO-NUMS: lotto numbers (6 numbers and a bonus number)
+MY-NUMS: my numbers to check (6 numbers)
+return: result of check. (grade (matched_numbers))
+
+ex) (lotto-check-numbers '((11 15 16 18 31 34) 44) '(11 15 20 26 31 35))
+    => (5
+        (11 15 31))"
   (let* ((intsec (delq
                   nil
                   (mapcar
@@ -285,7 +389,16 @@
 
 
 (defun lotto-check-numbers-list (gno my-num-list)
-  "check the given lotto numbers\nGNO: game no.\nMY-NUM-LIST: a list of numbers to check\nreturn: result of check. ((grade (matched_numbers)) ...)\n\nex) (lotto-check-numbers-list 395 '((1 2 3 4 5 6) (11 15 20 28 32 36)))\n=> ((0 nil) (5 (11 15 20)))"
+  "check the given list of the lotto numbers
+GNO: game no.
+MY-NUM-LIST: a list of numbers to check
+return: result of check. ((grade (matched_numbers)) ...)
+
+ex) (lotto-check-numbers-list 395 '((1 2 3 4 5 6) (11 15 20 28 32 36)))
+    => ((0
+         nil)
+        (5
+         (11 15 20)))"
   (let ((lotto-nums (lotto-retrieve-numbers gno))
         (my-list (if (consp (car my-num-list))
                      my-num-list
@@ -298,7 +411,12 @@
 
 
 (defun lotto-retrieve-numbers-formatted (gno)
-  ;; TODO add comments
+  "return a formatted string for the given game no.
+GNO: game no.
+return: a formatted lotto info string
+
+ex) (lotto-retrieve-numbers-formatted 430)
+    => \"Game 430: 1 3 16 18 30 34 and Bonus Number is 44.\""
   (let ((nums (lotto-retrieve-numbers gno)))
     (if nums
         (format "Game %d: %s and Bonus Number is %d."
@@ -312,17 +430,22 @@
 
 
 (defun lotto-create-msg-window ()
-  ;; TODO add comments
+  "create a window for the `*lotto-check-messages*' buffer"
   (let ((buf (get-buffer-create +lotto-message-buffer+))
         (win (split-window-vertically)))
     (other-window 1)
     (set-window-text-height nil +lotto-msg-window-height+)
     (switch-to-buffer buf)
+    (lotto-mode)
     win))
 
 
-(defun lotto-get-or-create-lotto-msg-window ()
-  ;; TODO add comments
+(defun lotto-get-or-create-lotto-msg-window (&optional do-not-create)
+  "find the window for the`*lotto-check-messages*' buffer
+or create a window for the buffer
+DO-NOT-CREATE: If its value is non NIL, this function does not create a new window.
+return: the exist window or a new window (DO-NOT-CREATE is NIL)
+        NIL or a new window (DO-NOT-CREATE is non NIL)"
   (let ((wlist (window-list))
         (lwin nil))
     (dolist (w wlist)
@@ -330,20 +453,27 @@
              (buffer-name (window-buffer w)))
         (setq lwin w)
         (return)))
-    (if (null lwin)
+    (if (and (not do-not-create) (null lwin))
         (lotto-create-msg-window)
       lwin)))
 
 
-(defun lotto-message (msg &optional toBuf)
-  ;; TODO add comments
-  (if (or toBuf lotto-use-buffer-for-message)
+(defun lotto-message (msg &optional to-buf)
+  "display the given message
+MSG: a message to display
+TO-BUF: whether to display the message on the `*lotto-check-messages*' buffer
+
+* If the value of either `TO-BUF' or `lotto-use-buffer-for-message' is non NIL,
+  the contents of `MSG' will be displayed on the `*lotto-check-messages*' buffer."
+  (if (or to-buf lotto-use-buffer-for-message)
       (let ((win (lotto-get-or-create-lotto-msg-window)))
         (set-buffer (window-buffer win))
+        (setq buffer-read-only nil)
         (goto-char (point-max))
         (insert msg)
         (insert "\n")
-        (goto-char (point-max)))
+        (goto-char (point-max))
+        (setq buffer-read-only t))
     (message msg)))
 
 
@@ -354,11 +484,17 @@
 
 
 (defun lotto-retrieve-numbers-i (gno)
+  "retrieve lotto numbers and then
+show it on the `*lotto-check-messages*' buffer
+        or the `*Messages*' buffer"
   (interactive "ngame no: ")
   (lotto-message (lotto-retrieve-numbers-formatted gno)))
 
 
 (defun lotto-check-numbers-list-i (gno my-num-list)
+  "check the given list of the lotto numbers and then
+show it on the `*lotto-check-messages*' buffer
+        or the `*Messages*' buffer"
   (interactive "ngame no: \nxyour numbers: ")
   (let ((results (lotto-check-numbers-list gno my-num-list))
         (msgs nil))
@@ -388,6 +524,7 @@
 
 
 (defun lotto-save-db-to-file-i ()
+  "save the contents of `*lotto-database*' to the local file(`lotto-database-file')"
   (interactive)
   (if (lotto-save-db-to-file)
       (lotto-message (format "OK: Lotto DB has been successfully saved. (%s)" lotto-database-file))
@@ -395,13 +532,24 @@
 
 
 (defun lotto-load-db-from-file-i ()
+  "load the contents of `*lotto-database*' from the local file(`lotto-database-file')"
   (interactive)
   (if (lotto-load-db-from-file)
       (lotto-message (format "OK: Lotto DB has been successfully loaded. (%s)" lotto-database-file))
     (lotto-message "ERROR: Loading Lotto DB failed!!")))
 
 
+(defun lotto-hide-message-buffer ()
+  "hide the window for the `*lotto-check-messages*' buffer"
+  (interactive)
+  (let ((win (lotto-get-or-create-lotto-msg-window t)))
+    (print win)
+    (if win
+        (delete-window win))))
+
+
 (defun http-retrieve-page-contents (url)
+  "retrieve data from the given URL"
   (interactive "surl: ")
   (save-excursion
     (let ((buf1 (url-retrieve-synchronously url)))
