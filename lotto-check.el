@@ -103,7 +103,7 @@ To enable this variable, you must set `lotto-info-retrieve-func' to `lotto-info-
 
 
 (defconst +lotto-msg-window-height+
-  5
+  15
   "Height of the Lotto message window")
 
 
@@ -138,12 +138,15 @@ To enable this variable, you must set `lotto-info-retrieve-func' to `lotto-info-
   (setq buffer-read-only t)
 
   ;; key bindings
+  (local-set-key (kbd "Q") 'lotto-kill-message-buffer)
   (local-set-key (kbd "q") 'lotto-hide-message-buffer)
+  (local-set-key (kbd "!") 'lotto-clear-message-buffer)
   (local-set-key (kbd "g") 'lotto-retrieve-numbers-i)
   (local-set-key (kbd "r") 'lotto-retrieve-numbers-i)
   (local-set-key (kbd "c") 'lotto-check-numbers-list-i)
   (local-set-key (kbd "l") 'lotto-load-db-from-file-i)
-  (local-set-key (kbd "s") 'lotto-save-db-to-file-i))
+  (local-set-key (kbd "s") 'lotto-save-db-to-file-i)
+  (local-set-key (kbd "h") 'lotto-display-help-message))
 
 
 
@@ -468,12 +471,11 @@ TO-BUF: whether to display the message on the `*lotto-check-messages*' buffer
   (if (or to-buf lotto-use-buffer-for-message)
       (let ((win (lotto-get-or-create-lotto-msg-window)))
         (set-buffer (window-buffer win))
-        (setq buffer-read-only nil)
-        (goto-char (point-max))
-        (insert msg)
-        (insert "\n")
-        (goto-char (point-max))
-        (setq buffer-read-only t))
+        (let ((inhibit-read-only t))
+          (goto-char (point-max))
+          (insert msg)
+          (insert "\n")
+          (goto-char (point-max))))
     (message msg)))
 
 
@@ -481,6 +483,64 @@ TO-BUF: whether to display the message on the `*lotto-check-messages*' buffer
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; interactive functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defun lotto-start ()
+  "create or show a lotto-mode bu"
+  (interactive)
+  (let ((buf (get-buffer +lotto-message-buffer+))
+        (win (lotto-get-or-create-lotto-msg-window)))
+    (if buf
+        (select-window win)
+      (lotto-display-greetings))))
+
+
+(defun lotto-kill-message-buffer ()
+  "kill the `*lotto-check-messages*' buffer"
+  (interactive)
+  (let ((buf (get-buffer +lotto-message-buffer+)))
+    (when buf
+      (let ((win (lotto-get-or-create-lotto-msg-window t)))
+        (if win
+            (delete-window win)))
+      (kill-buffer buf))))
+
+
+(defun lotto-clear-message-buffer ()
+  "clean up the `*lotto-check-messages*' buffer"
+  (interactive)
+  (let ((buf (get-buffer +lotto-message-buffer+)))
+    (when buf
+      (set-buffer buf)
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (lotto-display-greetings)))))
+
+
+(defun lotto-display-greetings ()
+  "display greeting messages"
+  (lotto-message "Welcome to Lotto-mode!")
+  (lotto-message "`h' for help messages."))
+
+
+(defun lotto-display-help-message ()
+  "display help messages"
+  (interactive)
+  (let ((msg
+         '("====================================================="
+           " Key Shortcuts"
+           "-----------------------------------------------------"
+           " h      - display this messages"
+           " g or r - retrieve lotto numbers"
+           " c      - check the given list of the lotto numbers"
+           " l      - load lotto info from the local file"
+           " s      - save lotto info to the local file"
+           " !      - clean up the lotto message buffer"
+           " q      - close the lotto message window"
+           " Q      - kill the lotto message window & the buffer"
+           "=====================================================")))
+    (dolist (m msg)
+      (lotto-message m))))
 
 
 (defun lotto-retrieve-numbers-i (gno)
@@ -543,7 +603,6 @@ show it on the `*lotto-check-messages*' buffer
   "hide the window for the `*lotto-check-messages*' buffer"
   (interactive)
   (let ((win (lotto-get-or-create-lotto-msg-window t)))
-    (print win)
     (if win
         (delete-window win))))
 
