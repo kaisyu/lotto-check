@@ -107,9 +107,9 @@ Emacs의 Customize 기능(**M-x customize**)을 사용해서 Applications 그룹
     반환값: 등수와 일치한 번호를 포함한 alist 객체의 list
     
     예) (lotto-check-numbers-list 395 '((1 2 3 4 5 6) (11 15 20 28 32 36)))
-    => (((grade . 0)
+    => (((rank . 0)
          (matched . nil))
-        ((grade . 5)
+        ((rank . 5)
          (matched . (11 15 20))))
 
 

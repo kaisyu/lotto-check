@@ -127,7 +127,7 @@ To enable this variable, you must set `lotto-info-data-source' to `lotto-info-da
 (defconst +lotto-keywords+
   '(("Game [0-9]+:" . font-lock-keyword-face)
     ("Try #[0-9]+" . font-lock-keyword-face)
-    ("Grade:\\|Matched Numbers:" . font-lock-keyword-face)
+    ("Rank:\\|Matched Numbers:" . font-lock-keyword-face)
     ("\\b[0-9]+\\b" . font-lock-constant-face)
     ("OK:" . font-lock-function-name-face)
     ("Error:" . font-lock-warning-face))
@@ -424,7 +424,7 @@ MY-NUMS: my numbers to check (6 numbers)
 return: result. (alist)
 
 ex) (lotto-check-numbers '((nums 11 15 16 18 31 34) (bnum . 44)) '(11 15 20 26 31 35))
-    => ((grade . 5)
+    => ((rank . 5)
         (matched . (11 15 31)))"
   (let* ((intsec (delq
                   nil
@@ -433,7 +433,7 @@ ex) (lotto-check-numbers '((nums 11 15 16 18 31 34) (bnum . 44)) '(11 15 20 26 3
                    my-nums)))
          (ilen (length intsec)))
     (list
-     (cons 'grade
+     (cons 'rank
            (cond ((= ilen 6) 1)
                  ((= ilen 5)
                   (if (member (lotto-get-value lotto-nums 'bnum) my-nums)
@@ -452,12 +452,12 @@ ex) (lotto-check-numbers '((nums 11 15 16 18 31 34) (bnum . 44)) '(11 15 20 26 3
   "check the given list of the lotto numbers
 GNO: game no.
 MY-NUM-LIST: a list of numbers to check
-return: result of check. ((grade (matched_numbers)) ...)
+return: result of check. ((alist) ...)
 
 ex) (lotto-check-numbers-list 395 '((1 2 3 4 5 6) (11 15 20 28 32 36)))
-    => (((grade . 0)
+    => (((rank . 0)
          (matched . nil))
-        ((grade . 5)
+        ((rank . 5)
          (matched . (11 15 20))))"
   (let ((lotto-nums (lotto-retrieve-numbers gno))
         (my-list (if (consp (car my-num-list))
@@ -629,12 +629,12 @@ show it on the `*lotto-check-messages*' buffer
                     (list my-num-list))
                   (cdr mylst)))
           ((or (null lst) (null mylst)))
-        (push (format "Try #%d %-19s => Grade: %s, Matched Numbers: %s"
+        (push (format "Try #%d %-19s => Rank: %s, Matched Numbers: %s"
                       cnt
                       (car mylst)
-                      (if (= (lotto-get-value (car lst) 'grade) 0)
+                      (if (= (lotto-get-value (car lst) 'rank) 0)
                           "-"
-                        (int-to-string (lotto-get-value (car lst) 'grade)))
+                        (int-to-string (lotto-get-value (car lst) 'rank)))
                       (if (null (lotto-get-value (car lst) 'matched))
                           "None"
                         (substring
