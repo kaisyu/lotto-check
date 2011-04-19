@@ -83,7 +83,7 @@ Emacs의 Customize 기능(**M-x customize**)을 사용해서 Applications 그룹
 
 ## lotto-check 모듈의 interactive 함수들 실행 결과
 
- ![lotto-check 실행 결과](http://4.bp.blogspot.com/-XFYnMiuk7C8/Ta0PNgMZKUI/AAAAAAAAAms/ybkBKnk4xKc/s1600/lotto-check-el.png)
+ ![lotto-check 실행 결과](http://1.bp.blogspot.com/-9oAUkzimNXk/Ta0-IrsecpI/AAAAAAAAAmw/m4OrGHDqTBo/s1600/lotto-check-el-2.png)
 
 ## API 함수 사용하기
 
