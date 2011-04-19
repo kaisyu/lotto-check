@@ -14,7 +14,7 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; Version 0.2.0
+;; Version 0.2.1
 ;; Author: Sang-gi Lee <kaisyu@gmail.com>
 
 ;; Requirements:
@@ -40,51 +40,6 @@
 
 
 (eval-when-compile (require 'cl))
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; custom variables
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(defgroup lotto nil
-  "Simple API for Korean Lotto 645"
-  :prefix "lotto-"
-  :version "22.0"
-  :group 'applications)
-
-
-(defcustom lotto-info-data-source-custom nil
-  "a custom data source to retrieve lotto info.
-
-To enable this variable, you must set `lotto-info-data-source' to `lotto-info-data-source-custom'."
-  :type '(alist :value-type function)
-  :group 'lotto)
-
-
-(defcustom lotto-info-data-source +lotto-data-source-lotto-k+
-  "a data source to retrieve lotto info"
-  :type '(alist :value-type function)
-  :options (list +lotto-data-source-lotto-k+
-                 +lotto-data-source-naver+
-                 +lotto-data-source-daum+
-                 +lotto-data-source-nate+
-                 +lotto-data-source-645lotto+
-                 lotto-info-data-source-custom)
-  :group 'lotto)
-
-
-(defcustom lotto-database-file "~/.lotto-database"
-  "a file to store lotto database"
-  :type 'file
-  :group 'lotto)
-
-
-(defcustom lotto-use-buffer-for-message t
-  "use an own buffer for messages"
-  :type 'boolean
-  :group 'lotto)
 
 
 
@@ -116,44 +71,6 @@ To enable this variable, you must set `lotto-info-data-source' to `lotto-info-da
 (defconst +http-retrieved-page-contents-buffer+
   "*http-retrieved-page-contents*"
   "Buffer for the retrieved page contents by http")
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; lotto-mode definition
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(defconst +lotto-keywords+
-  '(("Game [0-9]+:" . font-lock-keyword-face)
-    ("Try #[0-9]+" . font-lock-keyword-face)
-    ("Rank:\\|Matched Numbers:" . font-lock-keyword-face)
-    ("\\b[0-9]+\\b" . font-lock-constant-face)
-    ("OK:" . font-lock-function-name-face)
-    ("Error:" . font-lock-warning-face))
-  "Keywords for lotto-mode")
-
-
-(define-derived-mode lotto-mode fundamental-mode
-  "lotto-mode"
-  "Major mode for Lotto Info"
-
-  ;; code for syntax highlighting
-  (setq font-lock-defaults '(+lotto-keywords+))
-
-  ;; make the buffer read-only
-  (setq buffer-read-only t)
-
-  ;; key bindings
-  (local-set-key (kbd "Q") 'lotto-kill-message-buffer)
-  (local-set-key (kbd "q") 'lotto-hide-message-buffer)
-  (local-set-key (kbd "!") 'lotto-clear-message-buffer)
-  (local-set-key (kbd "g") 'lotto-retrieve-numbers-i)
-  (local-set-key (kbd "r") 'lotto-retrieve-numbers-i)
-  (local-set-key (kbd "c") 'lotto-check-numbers-list-i)
-  (local-set-key (kbd "l") 'lotto-load-db-from-file-i)
-  (local-set-key (kbd "s") 'lotto-save-db-to-file-i)
-  (local-set-key (kbd "h") 'lotto-display-help-message))
 
 
 
@@ -302,6 +219,89 @@ To enable this variable, you must set `lotto-info-data-source' to `lotto-info-da
              (aput 'obj 'gdate (replace-regexp-in-string "\\." "-" (match-string 1)))
              obj))))
   "Lotto Data Source: 645Lotto")
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; custom variables
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defgroup lotto nil
+  "Simple API for Korean Lotto 645"
+  :prefix "lotto-"
+  :version "22.0"
+  :group 'applications)
+
+
+(defcustom lotto-info-data-source-custom nil
+  "a custom data source to retrieve lotto info.
+
+To enable this variable, you must set `lotto-info-data-source' to `lotto-info-data-source-custom'."
+  :type '(alist :value-type function)
+  :group 'lotto)
+
+
+(defcustom lotto-info-data-source +lotto-data-source-lotto-k+
+  "a data source to retrieve lotto info"
+  :type '(alist :value-type function)
+  :options (list +lotto-data-source-lotto-k+
+                 +lotto-data-source-naver+
+                 +lotto-data-source-daum+
+                 +lotto-data-source-nate+
+                 +lotto-data-source-645lotto+
+                 lotto-info-data-source-custom)
+  :group 'lotto)
+
+
+(defcustom lotto-database-file "~/.lotto-database"
+  "a file to store lotto database"
+  :type 'file
+  :group 'lotto)
+
+
+(defcustom lotto-use-buffer-for-message t
+  "use an own buffer for messages"
+  :type 'boolean
+  :group 'lotto)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; lotto-mode definition
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defconst +lotto-keywords+
+  '(("Game [0-9]+:" . font-lock-keyword-face)
+    ("Try #[0-9]+" . font-lock-keyword-face)
+    ("Rank:\\|Matched Numbers:" . font-lock-keyword-face)
+    ("\\b[0-9]+\\b" . font-lock-constant-face)
+    ("OK:" . font-lock-function-name-face)
+    ("Error:" . font-lock-warning-face))
+  "Keywords for lotto-mode")
+
+
+(define-derived-mode lotto-mode fundamental-mode
+  "lotto-mode"
+  "Major mode for Lotto Info"
+
+  ;; code for syntax highlighting
+  (setq font-lock-defaults '(+lotto-keywords+))
+
+  ;; make the buffer read-only
+  (setq buffer-read-only t)
+
+  ;; key bindings
+  (local-set-key (kbd "Q") 'lotto-kill-message-buffer)
+  (local-set-key (kbd "q") 'lotto-hide-message-buffer)
+  (local-set-key (kbd "!") 'lotto-clear-message-buffer)
+  (local-set-key (kbd "g") 'lotto-retrieve-numbers-i)
+  (local-set-key (kbd "r") 'lotto-retrieve-numbers-i)
+  (local-set-key (kbd "c") 'lotto-check-numbers-list-i)
+  (local-set-key (kbd "l") 'lotto-load-db-from-file-i)
+  (local-set-key (kbd "s") 'lotto-save-db-to-file-i)
+  (local-set-key (kbd "h") 'lotto-display-help-message))
 
 
 
