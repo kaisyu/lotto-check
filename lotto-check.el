@@ -115,7 +115,7 @@
              (aput 'obj 'nums (reverse nums))
              ;; gno, gdate
              (goto-char (point-min))
-             (re-search-forward "<em>\\([0-9]+\\)[^(]+(\\([0-9]\\{4\\}\\.[0-9]\\{2\\}\\.[0-9]\\{2\\}\\).+)")
+             (re-search-forward "<em>\\([0-9]+\\)[^(]+(\\([0-9]\\{4\\}\\.[0-9]\\{2\\}\\.[0-9]\\{2\\}\\)[^)]+)")
              (aput 'obj 'gno (string-to-number (match-string 1)))
              (aput 'obj 'gdate (replace-regexp-in-string "\\." "-" (match-string 2)))
              obj))))
