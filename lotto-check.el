@@ -14,7 +14,7 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; Version 0.2.1
+;; Version 0.2.2
 ;; Author: Sang-gi Lee <kaisyu@gmail.com>
 
 ;; Requirements:
@@ -111,13 +111,13 @@
              (dotimes (i 7)
                (re-search-forward "ball\\([0-9]+\\)\\.gif")
                (push (string-to-number (match-string 1)) nums))
-             (aput 'obj 'bnum (pop nums))
-             (aput 'obj 'nums (reverse nums))
+             (push (cons 'bnum (pop nums)) obj)
+             (push (cons 'nums (reverse nums)) obj)
              ;; gno, gdate
              (goto-char (point-min))
              (re-search-forward "<em>\\([0-9]+\\)[^(]+(\\([0-9]\\{4\\}\\.[0-9]\\{2\\}\\.[0-9]\\{2\\}\\)[^)]+)")
-             (aput 'obj 'gno (string-to-number (match-string 1)))
-             (aput 'obj 'gdate (replace-regexp-in-string "\\." "-" (match-string 2)))
+             (push (cons 'gno (string-to-number (match-string 1))) obj)
+             (push (cons 'gdate (replace-regexp-in-string "\\." "-" (match-string 2))) obj)
              obj))))
   "Lotto Data Source: Naver")
 
@@ -140,13 +140,13 @@
              (dotimes (i 7)
                (re-search-forward "ball_\\([0-9]+\\)\\.gif")
                (push (string-to-number (match-string 1)) nums))
-             (aput 'obj 'bnum (pop nums))
-             (aput 'obj 'nums (reverse nums))
+             (push (cons 'bnum (pop nums)) obj)
+             (push (cons 'nums (reverse nums)) obj)
              ;; gno, gdate
              (goto-char (point-min))
              (re-search-forward " \\([0-9]+\\)[^(]+(\\([0-9]+\\)[^0-9]+\\([0-9]+\\)[^0-9]+\\([0-9]+\\)[^)]+)</em>")
-             (aput 'obj 'gno (string-to-number (match-string 1)))
-             (aput 'obj 'gdate (concat (match-string 2) "-" (match-string 3) "-" (match-string 4)))
+             (push (cons 'gno (string-to-number (match-string 1))) obj)
+             (push (cons 'gdate (concat (match-string 2) "-" (match-string 3) "-" (match-string 4))) obj)
              obj))))
   "Lotto Data Source: Daum")
 
@@ -169,23 +169,24 @@
              (dotimes (i 7)
                (re-search-forward "ball\\([0-9]+\\)\\.gif")
                (push (string-to-number (match-string 1)) nums))
-             (aput 'obj 'bnum (pop nums))
-             (aput 'obj 'nums (reverse nums))
+             (push (cons 'bnum (pop nums)) obj)
+             (push (cons 'nums (reverse nums)) obj)
              ;; gno
              (goto-char (point-min))
              (while (re-search-forward "txt_num_count\\([0-9]\\)\\.gif" nil t)
                (push (match-string 1) gnos))
-             (aput 'obj 'gno (string-to-number (mapconcat 'identity (reverse gnos) "")))
+             (push (cons 'gno (string-to-number (mapconcat 'identity (reverse gnos) ""))) obj)
              ;; gdate
              (goto-char (point-min))
              (setq gnos nil)
              (while (re-search-forward "txt_num_date\\([0-9]\\)\\.gif\\|txt_year\\.gif\\|txt_month\\.gif" nil t)
                (push (if (null (match-string 1)) "-" (match-string 1)) gnos))
              (push " GMT+9" gnos)
-             (aput 'obj 'gdate
-                   (format-time-string
-                    "%Y-%m-%d"
-                    (date-to-time (mapconcat 'identity (reverse gnos) ""))))
+             (push (cons 'gdate
+                         (format-time-string
+                          "%Y-%m-%d"
+                          (date-to-time (mapconcat 'identity (reverse gnos) ""))))
+                   obj)
              obj))))
   "Lotto Data Source: Nate")
 
@@ -207,16 +208,16 @@
              (dotimes (i 7)
                (re-search-forward "Ball[\\\t ]:[\\\t ]\\\"\\([0-9]+\\)\\\"")
                (push (string-to-number (match-string 1)) nums))
-             (aput 'obj 'bnum (pop nums))
-             (aput 'obj 'nums (reverse nums))
+             (push (cons 'bnum (pop nums)) obj)
+             (push (cons 'nums (reverse nums)) obj)
              ;; gno
              (goto-char (point-min))
              (re-search-forward "GRWNO[\\\t ]:[\\\t ]\\\"\\([0-9]+\\)\\\"")
-             (aput 'obj 'gno (string-to-number (match-string 1)))
+             (push (cons 'gno (string-to-number (match-string 1))) obj)
              ;; gdate
              (goto-char (point-min))
              (re-search-forward "GRWDate[\\\t ]:[\\\t ]\\\"\\(.+\\)\\\"")
-             (aput 'obj 'gdate (replace-regexp-in-string "\\." "-" (match-string 1)))
+             (push (cons 'gdate (replace-regexp-in-string "\\." "-" (match-string 1))) obj)
              obj))))
   "Lotto Data Source: 645Lotto")
 
