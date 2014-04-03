@@ -196,27 +196,30 @@
    (list 'url
          (lambda (gno)
            (if (and gno (> gno 0))
-               (format "http://www.645lotto.net/resultall/%d.asp" gno)
-             "http://www.645lotto.net/resultall/dummy.asp")))
+               (format "http://www.645lotto.net/common.do?method=getLottoNumber&drwNo=%d" gno)
+             "http://www.645lotto.net/common.do?method=getLottoNumber")))
    (list 'retr
          (lambda (buf gno)
            (let ((obj nil)
                  (nums nil))
              (set-buffer buf)
-             ;; nums + bnum
+             ;; nums
              (goto-char (point-min))
-             (dotimes (i 7)
-               (re-search-forward "Ball[\\\t ]:[\\\t ]\\\"\\([0-9]+\\)\\\"")
+             (dotimes (i 6)
+               (re-search-forward "\\\"drwtNo[1-6]\\\":\\([0-9]+\\)")
                (push (string-to-number (match-string 1)) nums))
-             (push (cons 'bnum (pop nums)) obj)
-             (push (cons 'nums (reverse nums)) obj)
+             (push (cons 'nums (sort nums #'<)) obj)
+             ;; bnum
+             (goto-char (point-min))
+             (re-search-forward "\\\"bnusNo\\\":\\([0-9]+\\)")
+             (push (cons 'bnum (string-to-number (match-string 1))) obj)
              ;; gno
              (goto-char (point-min))
-             (re-search-forward "GRWNO[\\\t ]:[\\\t ]\\\"\\([0-9]+\\)\\\"")
+             (re-search-forward "\\\"drwNo\\\":\\([0-9]+\\)")
              (push (cons 'gno (string-to-number (match-string 1))) obj)
              ;; gdate
              (goto-char (point-min))
-             (re-search-forward "GRWDate[\\\t ]:[\\\t ]\\\"\\(.+\\)\\\"")
+             (re-search-forward "\\\"drwNoDate\\\":\\\"\\([^\\\"]+\\)\\\"")
              (push (cons 'gdate (replace-regexp-in-string "\\." "-" (match-string 1))) obj)
              obj))))
   "Lotto Data Source: 645Lotto")
