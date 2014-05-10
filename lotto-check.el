@@ -99,25 +99,31 @@
    (list 'url
          (lambda (gno)
            (if (and gno (> gno 0))
-               (format "http://search.naver.com/search.naver?sm=tab_hty&where=nexearch&query=%d%%C8%%B8%%B7%%CE%%B6%%C7" gno)
-             "http://search.naver.com/search.naver?sm=tab_hty&where=nexearch&query=%B7%CE%B6%C7")))
+               (format "http://m.search.naver.com/search.naver?sm=tab_hty.top&where=nexearch&ie=utf8&query=%d%%ED%%9A%%8C%%EB%%A1%%9C%%EB%%98%%90&x=0&y=0" gno)
+             "http://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&query=%EB%A1%9C%EB%98%90")))
    (list 'retr
          (lambda (buf gno)
            (let ((obj nil)
                  (nums nil))
              (set-buffer buf)
-             ;; nums + bnum
+             ;; nums
              (goto-char (point-min))
-             (dotimes (i 7)
-               (re-search-forward "ball\\([0-9]+\\)\\.gif")
+             (dotimes (i 6)
+               (re-search-forward "<li class=\\\"num.\\\">\\([0-9]+\\)</li>")
                (push (string-to-number (match-string 1)) nums))
-             (push (cons 'bnum (pop nums)) obj)
              (push (cons 'nums (reverse nums)) obj)
-             ;; gno, gdate
+             ;; bnum
              (goto-char (point-min))
-             (re-search-forward "<em>\\([0-9]+\\)[^(]+(\\([0-9]\\{4\\}\\.[0-9]\\{2\\}\\.[0-9]\\{2\\}\\)[^)]+)")
+             (re-search-forward "<span class=\\\"pnum.\\\">\\([0-9]+\\)</span>")
+             (push (cons 'bnum (string-to-number (match-string 1))) obj)
+             ;; gno
+             (goto-char (point-min))
+             (re-search-forward "<h3 class=\\\"hc\\\">\\([0-9]+\\)[^0-9]")
              (push (cons 'gno (string-to-number (match-string 1))) obj)
-             (push (cons 'gdate (replace-regexp-in-string "\\." "-" (match-string 2))) obj)
+             ;; gdate
+             (goto-char (point-min))
+             (re-search-forward "<dd>\\([0-9]\\{4\\}\\.[0-9]\\{2\\}\\.[0-9]\\{2\\}\\)</dd>")
+             (push (cons 'gdate (replace-regexp-in-string "\\." "-" (match-string 1))) obj)
              obj))))
   "Lotto Data Source: Naver")
 
@@ -127,10 +133,9 @@
    (list 'url
          (lambda (gno)
            (if (and gno (> gno 0))
-               (format "http://search.daum.net/search?q=%%B7%%CE%%B6%%C7%d" gno)
-             "http://search.daum.net/search?q=%B7%CE%B6%C7")))
+               (format "http://m.search.daum.net/search?w=tot&q=%d%%ED%%9A%%8C%%EC%%B0%%A8%%20%%EB%%A1%%9C%%EB%%98%%90" gno)
+             "http://m.search.daum.net/search?w=tot&q=%EB%A1%9C%EB%98%90")))
    (list 'retr
-         ;; FIXME: `date-to-time' error on running the `url-retrieve-synchronously' function
          (lambda (buf gno)
            (let ((obj nil)
                  (nums nil))
@@ -138,57 +143,17 @@
              ;; nums + bnum
              (goto-char (point-min))
              (dotimes (i 7)
-               (re-search-forward "ball_\\([0-9]+\\)\\.gif")
+               (re-search-forward "<span class=\\\"bg_num\\\">\\([0-9]+\\)</span>")
                (push (string-to-number (match-string 1)) nums))
              (push (cons 'bnum (pop nums)) obj)
              (push (cons 'nums (reverse nums)) obj)
              ;; gno, gdate
              (goto-char (point-min))
-             (re-search-forward " \\([0-9]+\\)[^(]+(\\([0-9]+\\)[^0-9]+\\([0-9]+\\)[^0-9]+\\([0-9]+\\)[^)]+)</em>")
+             (re-search-forward "<span class=\\\"f_red_b ff_hel\\\">\\([0-9]+\\)[^(]+(\\([0-9]\\{4\\}\\.[0-9]\\{2\\}\\.[0-9]\\{2\\}\\) ")
              (push (cons 'gno (string-to-number (match-string 1))) obj)
-             (push (cons 'gdate (concat (match-string 2) "-" (match-string 3) "-" (match-string 4))) obj)
+             (push (cons 'gdate (replace-regexp-in-string "\\." "-" (match-string 2))) obj)
              obj))))
   "Lotto Data Source: Daum")
-
-
-(defconst +lotto-data-source-nate+
-  (list
-   (list 'url
-         (lambda (gno)
-           (if (and gno (> gno 0))
-               (format "http://search.nate.com/search/all.html?q=%%B7%%CE%%B6%%C7%d" gno)
-             "http://search.nate.com/search/all.html?q=%B7%CE%B6%C7")))
-   (list 'retr
-         (lambda (buf gno)
-           (let ((obj nil)
-                 (nums nil)
-                 (gnos nil))
-             (set-buffer buf)
-             ;; nums + bnum
-             (goto-char (point-min))
-             (dotimes (i 7)
-               (re-search-forward "ball\\([0-9]+\\)\\.gif")
-               (push (string-to-number (match-string 1)) nums))
-             (push (cons 'bnum (pop nums)) obj)
-             (push (cons 'nums (reverse nums)) obj)
-             ;; gno
-             (goto-char (point-min))
-             (while (re-search-forward "txt_num_count\\([0-9]\\)\\.gif" nil t)
-               (push (match-string 1) gnos))
-             (push (cons 'gno (string-to-number (mapconcat 'identity (reverse gnos) ""))) obj)
-             ;; gdate
-             (goto-char (point-min))
-             (setq gnos nil)
-             (while (re-search-forward "txt_num_date\\([0-9]\\)\\.gif\\|txt_year\\.gif\\|txt_month\\.gif" nil t)
-               (push (if (null (match-string 1)) "-" (match-string 1)) gnos))
-             (push " GMT+9" gnos)
-             (push (cons 'gdate
-                         (format-time-string
-                          "%Y-%m-%d"
-                          (date-to-time (mapconcat 'identity (reverse gnos) ""))))
-                   obj)
-             obj))))
-  "Lotto Data Source: Nate")
 
 
 (defconst +lotto-data-source-645lotto+
@@ -252,7 +217,6 @@ To enable this variable, you must set `lotto-info-data-source' to `lotto-info-da
   :options (list +lotto-data-source-lotto-k+
                  +lotto-data-source-naver+
                  +lotto-data-source-daum+
-                 +lotto-data-source-nate+
                  +lotto-data-source-645lotto+
                  lotto-info-data-source-custom)
   :group 'lotto)
