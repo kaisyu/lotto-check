@@ -1,5 +1,5 @@
 ;;; lotto-check.el --- Simple API for Korean Lotto 645.   -*- emacs-lisp -*-
-;;; Copyright (C) 2010, 2011  Sang-gi Lee <kaisyu@gmail.com>
+;;; Copyright (C) 2010-2014  Sang-gi Lee <kaisyu@gmail.com>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-;; Version 0.2.2
+;; Version 0.2.3
 ;; Author: Sang-gi Lee <kaisyu@gmail.com>
 
 ;; Requirements:
