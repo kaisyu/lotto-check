@@ -70,7 +70,7 @@
   (cond ((null lst) ())
         ((<= n 0) ())
         (t
-         (let ((nlst 
+         (let ((nlst
                 (dotimes (cnt mixcnt lst)
                   (setq lst (sort lst #'lotto-gen-random-comp)))))
            (cons (car nlst) (lotto-gen-take-random (cdr nlst) (1- n) mixcnt))))))

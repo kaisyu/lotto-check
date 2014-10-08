@@ -241,7 +241,7 @@ To enable this variable, you must set `lotto-info-data-source' to `lotto-info-da
 
 
 (defconst +lotto-keywords+
-  '(("Game [0-9]+:" . font-lock-keyword-face)
+  '(("Game [ 0-9()-/]+:" . font-lock-keyword-face)
     ("Try #[0-9]+" . font-lock-keyword-face)
     ("Rank:\\|Matched Numbers:" . font-lock-keyword-face)
     ("\\b[0-9]+\\b" . font-lock-constant-face)
@@ -447,8 +447,9 @@ ex) (lotto-retrieve-numbers-formatted 430)
     => \"Game 430: 1 3 16 18 30 34 and Bonus Number is 44.\""
   (let ((info (lotto-retrieve-numbers gno)))
     (if info
-        (format "Game %d: %s and Bonus Number is %d."
+        (format "Game %d (%s): %s and Bonus Number is %d."
                 (lotto-get-value info 'gno)
+                (lotto-get-value info 'gdate)
                 (substring
                  (format "%s" (lotto-get-value info 'nums))
                  1 -1)
