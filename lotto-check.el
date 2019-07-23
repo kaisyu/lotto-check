@@ -122,7 +122,7 @@
              (push (cons 'gno (string-to-number (match-string 1))) obj)
              ;; gdate
              (goto-char (point-min))
-             (re-search-forward "<dd>\\([0-9]\\{4\\}\\.[0-9]\\{2\\}\\.[0-9]\\{2\\}\\)</dd>")
+             (re-search-forward " <dd>\\([0-9]\\{4\\}\\.[0-9]\\{2\\}\\.[0-9]\\{2\\}\\)\\.</dd> ")
              (push (cons 'gdate (replace-regexp-in-string "\\." "-" (match-string 1))) obj)
              obj))))
   "Lotto Data Source: Naver")
@@ -143,15 +143,18 @@
              ;; nums + bnum
              (goto-char (point-min))
              (dotimes (i 7)
-               (re-search-forward "<span class=\\\"bg_num\\\">\\([0-9]+\\)</span>")
+               (re-search-forward "<span class=\\\"num_lotto ico_num[0-9]+\\\">\\([0-9]+\\)</span>")
                (push (string-to-number (match-string 1)) nums))
              (push (cons 'bnum (pop nums)) obj)
              (push (cons 'nums (reverse nums)) obj)
-             ;; gno, gdate
+             ;; gno
              (goto-char (point-min))
-             (re-search-forward "<span class=\\\"f_red_b ff_hel\\\">\\([0-9]+\\)[^(]+(\\([0-9]\\{4\\}\\.[0-9]\\{2\\}\\.[0-9]\\{2\\}\\) ")
+             (re-search-forward "<em class=\\\"emph_count\\\">\\([0-9]+\\)")
              (push (cons 'gno (string-to-number (match-string 1))) obj)
-             (push (cons 'gdate (replace-regexp-in-string "\\." "-" (match-string 2))) obj)
+             ;; gdate
+             (goto-char (point-min))
+             (re-search-forward "data-draw-data=\\\"\\([0-9]\\{4\\}\\.[0-9]\\{2\\}\\.[0-9]\\{2\\}\\)\\\"")
+             (push (cons 'gdate (replace-regexp-in-string "\\." "-" (match-string 1))) obj)
              obj))))
   "Lotto Data Source: Daum")
 
