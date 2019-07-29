@@ -20,31 +20,35 @@
 
 ## 설치
 
-다운로드한 소스를 load path에 추가해줍니다. 
+다운로드한 소스를 load path에 추가해줍니다.
 
-    (add-to-list 'load-path "[lotto-check 모듈이 있는 경로]")
-    (require 'lotto-check)
+```lisp
+(add-to-list 'load-path "[lotto-check 모듈이 있는 경로]")
+(require 'lotto-check)
+```
 
 ## 설정
 
-Emacs의 Customize 기능(**M-x customize**)을 사용해서 Applications 그룹 아래의 Lotto 그룹으로 가면 간편하게 설정할 수 있는 UI가 제공되지만, 아래와 같이 직접 startup script 파일에 설정을 추가하는 것도 가능합니다. 
+Emacs의 Customize 기능(**M-x customize**)을 사용해서 Applications 그룹 아래의 Lotto 그룹으로 가면 간편하게 설정할 수 있는 UI가 제공되지만, 아래와 같이 직접 startup script 파일에 설정을 추가하는 것도 가능합니다.
 
-    ;; 로또 당첨 정보를 제공하는 데이터 소스를 지정합니다.
-    ;; 기본값은 +lotto-data-source-lotto-k+ 이며,
-    ;; 네이버, 다음, 네이트, 나눔로또 공식 홈페이지, 사용자 정의 방법 등을 제공합니다.
-    ;; 네이버: +lotto-data-source-naver+
-    ;; 다음: +lotto-data-source-daum+
-    ;; 네이트: +lotto-data-source-nate+
-    ;; 나눔로또 공식 홈페이지: +lotto-data-source-645lotto+
-    ;; 사용자 정의 소스: lotto-info-data-source-custom
-    ;; * 사용자 정의 소스 방식을 사용할 경우 lotto-info-data-source-custom 변수에
-    ;;   사용자 정의 소스를 지정합니다.
-    ;;   예) (setq lotto-info-data-source-custom 'my-lotto-info-data-src-1)
-    (setq lotto-info-data-source +lotto-data-source-lotto-k+)
-    ;; 로또 당첨 정보를 저장할 파일을 지정합니다.
-    (setq lotto-database-file "~/.lotto-database")
-    ;; interactive function 실행 시 결과를 별도의 buffer에 보여주도록 설정합니다.
-    (setq lotto-use-buffer-for-message t)
+```lisp
+;; 로또 당첨 정보를 제공하는 데이터 소스를 지정합니다.
+;; 기본값은 +lotto-data-source-lotto-k+ 이며,
+;; 네이버, 다음, 네이트, 나눔로또 공식 홈페이지, 사용자 정의 방법 등을 제공합니다.
+;; 네이버: +lotto-data-source-naver+
+;; 다음: +lotto-data-source-daum+
+;; 네이트: +lotto-data-source-nate+
+;; 나눔로또 공식 홈페이지: +lotto-data-source-645lotto+
+;; 사용자 정의 소스: lotto-info-data-source-custom
+;; * 사용자 정의 소스 방식을 사용할 경우 lotto-info-data-source-custom 변수에
+;;   사용자 정의 소스를 지정합니다.
+;;   예) (setq lotto-info-data-source-custom 'my-lotto-info-data-src-1)
+(setq lotto-info-data-source +lotto-data-source-lotto-k+)
+;; 로또 당첨 정보를 저장할 파일을 지정합니다.
+(setq lotto-database-file "~/.lotto-database")
+;; interactive function 실행 시 결과를 별도의 buffer에 보여주도록 설정합니다.
+(setq lotto-use-buffer-for-message t)
+```
 
 ----
 
@@ -87,30 +91,32 @@ Emacs의 Customize 기능(**M-x customize**)을 사용해서 Applications 그룹
 
 ## API 함수 사용하기
 
-    (lotto-retrieve-numbers GNO)
-    
-    로또 당첨 번호를 반환합니다.
-    GNO: 가져올 로또 회차 번호
-    반환값: 로또 당첨 번호 정보를 포함한 alist 객체
-    
-    예) (lotto-retrieve-numbers 395)
-    => ((bnum . 7)
-        (gno . 395)
-        (gdate . "2010-06-26")
-        (nums 11 15 20 26 31 35))
+```lisp
+(lotto-retrieve-numbers GNO)
 
-    (lotto-check-numbers-list GNO MY-NUM-LIST)
-    
-    주어진 번호의 당첨 여부를 반환합니다.
-    GNO: 비교할 로또 회차 번호
-    MY-NUM-LIST: 확인할 번호들의 list
-    반환값: 등수와 일치한 번호를 포함한 alist 객체의 list
-    
-    예) (lotto-check-numbers-list 395 '((1 2 3 4 5 6) (11 15 20 28 32 36)))
-    => (((rank . 0)
-         (matched . nil))
-        ((rank . 5)
-         (matched . (11 15 20))))
+로또 당첨 번호를 반환합니다.
+GNO: 가져올 로또 회차 번호
+반환값: 로또 당첨 번호 정보를 포함한 alist 객체
+
+예) (lotto-retrieve-numbers 395)
+=> ((bnum . 7)
+    (gno . 395)
+    (gdate . "2010-06-26")
+    (nums 11 15 20 26 31 35))
+
+(lotto-check-numbers-list GNO MY-NUM-LIST)
+
+주어진 번호의 당첨 여부를 반환합니다.
+GNO: 비교할 로또 회차 번호
+MY-NUM-LIST: 확인할 번호들의 list
+반환값: 등수와 일치한 번호를 포함한 alist 객체의 list
+
+예) (lotto-check-numbers-list 395 '((1 2 3 4 5 6) (11 15 20 28 32 36)))
+=> (((rank . 0)
+     (matched . nil))
+    ((rank . 5)
+     (matched . (11 15 20))))
+```
 
 
 [1]: http://twitter.com/lotto_k
