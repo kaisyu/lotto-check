@@ -92,26 +92,25 @@ Emacs의 Customize 기능(**M-x customize**)을 사용해서 Applications 그룹
 ## API 함수 사용하기
 
 ```lisp
-(lotto-retrieve-numbers GNO)
+;; (lotto-retrieve-numbers GNO)
+;;   로또 당첨 번호를 반환합니다.
+;;   GNO: 가져올 로또 회차 번호
+;;   반환값: 로또 당첨 번호 정보를 포함한 alist 객체
 
-로또 당첨 번호를 반환합니다.
-GNO: 가져올 로또 회차 번호
-반환값: 로또 당첨 번호 정보를 포함한 alist 객체
-
-예) (lotto-retrieve-numbers 395)
+(lotto-retrieve-numbers 395)
 => ((bnum . 7)
     (gno . 395)
     (gdate . "2010-06-26")
     (nums 11 15 20 26 31 35))
 
-(lotto-check-numbers-list GNO MY-NUM-LIST)
 
-주어진 번호의 당첨 여부를 반환합니다.
-GNO: 비교할 로또 회차 번호
-MY-NUM-LIST: 확인할 번호들의 list
-반환값: 등수와 일치한 번호를 포함한 alist 객체의 list
+;; (lotto-check-numbers-list GNO MY-NUM-LIST)
+;;   주어진 번호의 당첨 여부를 반환합니다.
+;;   GNO: 비교할 로또 회차 번호
+;;   MY-NUM-LIST: 확인할 번호들의 list
+;;   반환값: 등수와 일치한 번호를 포함한 alist 객체의 list
 
-예) (lotto-check-numbers-list 395 '((1 2 3 4 5 6) (11 15 20 28 32 36)))
+(lotto-check-numbers-list 395 '((1 2 3 4 5 6) (11 15 20 28 32 36)))
 => (((rank . 0)
      (matched . nil))
     ((rank . 5)
